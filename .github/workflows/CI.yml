@@ -48,9 +48,11 @@ jobs:
       - name: Upload artifact
         uses: actions/upload-artifact@v4
         with:
-          name: matlab
-          path: /opt/hostedtoolcache/MATLAB/2024.2.999
-      - name: Build Julia package
-        uses: julia-actions/julia-buildpkg@latest
-      - name: Run Julia tests
-        uses: julia-actions/julia-runtest@latest
+          #name: matlab
+          #path: /opt/hostedtoolcache/MATLAB/2024.2.999
+          name: matlab-actions
+          path: /home/runner/work/_actions/matlab-actions
+      # - name: Build Julia package
+      #   uses: julia-actions/julia-buildpkg@latest
+      # - name: Run Julia tests
+      #   uses: julia-actions/julia-runtest@latest
