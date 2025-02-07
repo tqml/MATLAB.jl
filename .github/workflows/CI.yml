@@ -41,15 +41,15 @@ jobs:
           ls /opt/hostedtoolcache/MATLAB/2024.2.999/x64/bin/glnxa64
           echo "Checking MATLAB command"
           more /opt/hostedtoolcache/MATLAB/2024.2.999/x64/bin/glnxa64/run-matlab-command
+      - name: Run statements
+        uses: matlab-actions/run-command@v2
+        with:
+          command: disp('Hello, MATLAB!');
       - name: Upload artifact
         uses: actions/upload-artifact@v4
         with:
           name: matlab
           path: /opt/hostedtoolcache/MATLAB/2024.2.999
-      - name: Run statements
-        uses: matlab-actions/run-command@v2
-        with:
-          command: disp('Hello, MATLAB!');
       - name: Build Julia package
         uses: julia-actions/julia-buildpkg@latest
       - name: Run Julia tests
