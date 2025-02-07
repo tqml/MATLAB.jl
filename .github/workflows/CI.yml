@@ -5,6 +5,7 @@ on:
     branches:
       - master
       - release-*
+      - feature/ci-testing
     tags: "*"
   pull_request:
 
