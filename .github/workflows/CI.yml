@@ -37,6 +37,8 @@ jobs:
         run: |
           echo "Checking MATLAB installation directory"
           ls /opt/hostedtoolcache/MATLAB/2024.2.999/x64
+          ls /opt/hostedtoolcache/MATLAB/2024.2.999/x64/bin/glnxa64
+          more /opt/hostedtoolcache/MATLAB/2024.2.999/x64/bin/glnxa64/run-matlab-command
       - name: Run statements
         uses: matlab-actions/run-command@v2
         with:
