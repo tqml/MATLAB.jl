@@ -37,6 +37,10 @@ jobs:
         run: |
           echo "Checking MATLAB installation directory"
           ls /opt/hostedtoolcache/MATLAB/2024.2.999/x64
+      - name: Run statements
+        uses: matlab-actions/run-command@v2
+        with:
+          command: disp('Hello, MATLAB!');
       - name: Check MATLAB Installation
         run: matlab -batch "disp('Hello, MATLAB!');"
       - name: Install csh
