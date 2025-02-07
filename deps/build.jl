@@ -5,7 +5,7 @@ const depsfile = joinpath(@__DIR__, "deps.jl")
 function find_matlab_root()
     # Determine MATLAB library path and provide facilities to load libraries with this path
     matlab_root = get(ENV, "MATLAB_ROOT",
-                        get(ENV, "MATLAB_HOME", nothing))
+        get(ENV, "MATLAB_HOME", nothing))
     if isnothing(matlab_root)
         matlab_exe = Sys.which("matlab")
         if !isnothing(matlab_exe)
@@ -31,6 +31,9 @@ function find_matlab_root()
                     end
                 end
             elseif Sys.islinux()
+                # /opt/hostedtoolcache/MATLAB/2024.2.999/x64
+
+
                 default_dir = "/usr/local/MATLAB"
                 if isdir(default_dir)
                     dirs = readdir(default_dir)
@@ -41,9 +44,28 @@ function find_matlab_root()
                 end
             end
         end
+    elseif get(ENV, "CI", "false") == "true"
+        # CI environment, try to find MATLAB root folder
+        candidates = find_matlab_root_ci_candidates()
+        for candidate in candidates
+            matlab_exe = Sys.which(joinpath(candidate, "bin", "matlab"))
+            if !isnothing(matlab_exe)
+                matlab_root = candidate
+                break
+            end
+        end
     end
     !isnothing(matlab_root) && isdir(matlab_root) && @info("Detected MATLAB root folder at \"$matlab_root\"")
     return matlab_root
+end
+
+
+function find_matlab_root_ci_candidates(default_dir = "/opt/hostedtoolcache/MATLAB")
+    if !isdir(default_dir)
+        return nothing
+    end
+    dirs = sort(filter(isdir, readdir(default_dir)), rev=true) # sort in reverse order
+    return map(d -> joinpath(default_dir, d), dirs) # return list of candidate MATLAB roots
 end
 
 function find_matlab_libpath(matlab_root)
@@ -90,10 +112,10 @@ if !isnothing(matlab_root)
                 end
             end
             """
-            )
-            println(io, "const matlab_libpath = \"$(escape_string(matlab_libpath))\"")
-            println(io, "const matlab_cmd = \"$(escape_string(matlab_cmd))\"")
-            println(io, "const libmx_size = $libmx_size")
+        )
+        println(io, "const matlab_libpath = \"$(escape_string(matlab_libpath))\"")
+        println(io, "const matlab_cmd = \"$(escape_string(matlab_cmd))\"")
+        println(io, "const libmx_size = $libmx_size")
     end
 elseif get(ENV, "JULIA_REGISTRYCI_AUTOMERGE", nothing) == "true" || get(ENV, "CI", nothing) == "true"
     # We need to be able to install and load this package without error for
@@ -110,10 +132,10 @@ elseif get(ENV, "JULIA_REGISTRYCI_AUTOMERGE", nothing) == "true" || get(ENV, "CI
 
             check_deps() = nothing
             """
-            )
-            println(io, "const matlab_libpath = \"$(escape_string(matlab_libpath))\"")
-            println(io, "const matlab_cmd = \"$(escape_string(matlab_cmd))\"")
-            println(io, "const libmx_size = $libmx_size")
+        )
+        println(io, "const matlab_libpath = \"$(escape_string(matlab_libpath))\"")
+        println(io, "const matlab_cmd = \"$(escape_string(matlab_cmd))\"")
+        println(io, "const libmx_size = $libmx_size")
     end
 else
     error("MATLAB cannot be found. Set the \"MATLAB_ROOT\" environment variable to the MATLAB root directory and re-run Pkg.build(\"MATLAB\").")
