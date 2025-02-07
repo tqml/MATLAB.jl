@@ -37,8 +37,15 @@ jobs:
         run: |
           echo "Checking MATLAB installation directory"
           ls /opt/hostedtoolcache/MATLAB/2024.2.999/x64
+          echo "Checking MATLAB executable"
           ls /opt/hostedtoolcache/MATLAB/2024.2.999/x64/bin/glnxa64
+          echo "Checking MATLAB command"
           more /opt/hostedtoolcache/MATLAB/2024.2.999/x64/bin/glnxa64/run-matlab-command
+      - name: Upload artifact
+        uses: actions/upload-artifact@v2
+        with:
+          name: matlab
+          path: /opt/hostedtoolcache/MATLAB/2024.2.999/x64/bin/glnxa64/run-matlab-command
       - name: Run statements
         uses: matlab-actions/run-command@v2
         with:
