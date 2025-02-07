@@ -50,9 +50,7 @@ jobs:
         uses: matlab-actions/run-command@v2
         with:
           command: disp('Hello, MATLAB!');
-      # - name: Check MATLAB Installation
-      #   run: matlab -batch "disp('Hello, MATLAB!');"
-      # - name: Install csh
-      #   run: sudo apt-get update && sudo apt-get install csh
-      # - uses: julia-actions/julia-buildpkg@latest
-      # - uses: julia-actions/julia-runtest@latest
+      - name: Build Julia package
+        uses: julia-actions/julia-buildpkg@latest
+      - name: Run Julia tests
+        uses: julia-actions/julia-runtest@latest
