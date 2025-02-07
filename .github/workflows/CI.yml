@@ -45,7 +45,7 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: matlab
-          path: /opt/hostedtoolcache/MATLAB/2024.2.999/x64/bin/glnxa64
+          path: /opt/hostedtoolcache/MATLAB/2024.2.999
       - name: Run statements
         uses: matlab-actions/run-command@v2
         with:
