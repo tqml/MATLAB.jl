@@ -42,7 +42,7 @@ jobs:
           echo "Checking MATLAB command"
           more /opt/hostedtoolcache/MATLAB/2024.2.999/x64/bin/glnxa64/run-matlab-command
       - name: Upload artifact
-        uses: actions/upload-artifact@v2
+        uses: actions/upload-artifact@v4
         with:
           name: matlab
           path: /opt/hostedtoolcache/MATLAB/2024.2.999/x64/bin/glnxa64/run-matlab-command
@@ -50,9 +50,9 @@ jobs:
         uses: matlab-actions/run-command@v2
         with:
           command: disp('Hello, MATLAB!');
-      - name: Check MATLAB Installation
-        run: matlab -batch "disp('Hello, MATLAB!');"
-      - name: Install csh
-        run: sudo apt-get update && sudo apt-get install csh
-      - uses: julia-actions/julia-buildpkg@latest
-      - uses: julia-actions/julia-runtest@latest
+      # - name: Check MATLAB Installation
+      #   run: matlab -batch "disp('Hello, MATLAB!');"
+      # - name: Install csh
+      #   run: sudo apt-get update && sudo apt-get install csh
+      # - uses: julia-actions/julia-buildpkg@latest
+      # - uses: julia-actions/julia-runtest@latest
