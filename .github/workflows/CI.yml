@@ -32,5 +32,10 @@ jobs:
           arch: ${{ matrix.arch }}
       - name: Set up MATLAB
         uses: matlab-actions/setup-matlab@v2
+      - name: Check MATLAB Installation
+        run: |
+          echo "Checking MATLAB installation"
+          ls /opt/hostedtoolcache/MATLAB/2024.2.999/x64
+          matlab -batch "disp('Hello, MATLAB!'); exit"
       - uses: julia-actions/julia-buildpkg@latest
       - uses: julia-actions/julia-runtest@latest
