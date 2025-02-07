@@ -10,7 +10,7 @@ is_ci() = lowercase(get(ENV, "CI", "false")) == "true"
 #     include("mxarray.jl")
 # end
 
-# include("engine.jl")
-# include("matfile.jl")
-# include("matstr.jl")
-# include("mxarray.jl")
+include("engine.jl")
+include("matfile.jl")
+include("matstr.jl")
+include("mxarray.jl")
