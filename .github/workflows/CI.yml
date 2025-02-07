@@ -45,6 +45,8 @@ jobs:
         uses: matlab-actions/run-command@v2
         with:
           command: disp('Hello, MATLAB!');
+      - name: RUN MATLAB Cmd 2
+        run: /home/runner/work/_actions/matlab-actions/run-command/v2/dist/bin/glnxa64/run-matlab-command "disp('Hello, MATLAB!');"
       - name: Upload artifact
         uses: actions/upload-artifact@v4
         with:
