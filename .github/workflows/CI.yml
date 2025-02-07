@@ -37,5 +37,9 @@ jobs:
         run: |
           echo "Checking MATLAB installation"
           ls /opt/hostedtoolcache/MATLAB/2024.2.999/x64
+      - name: Check MATLAB Installation 2
+        run: matlab -batch "disp('Hello, MATLAB!');"
+      - name: Install csh
+        run: sudo apt-get install csh
       - uses: julia-actions/julia-buildpkg@latest
       - uses: julia-actions/julia-runtest@latest
