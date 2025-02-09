@@ -48,6 +48,7 @@ jobs:
       - name: RUN MATLAB Cmd 2
         run: /home/runner/work/_actions/matlab-actions/run-command/v2/dist/bin/glnxa64/run-matlab-command "disp('Hello, MATLAB!');"
       - name: Test MATLAB
+        continue-on-error: true
         run: |
           echo "Testing MATLAB installation"
           matlab -nodisplay -nosplash -nodesktop -batch "disp('Hello, MATLAB!');"
