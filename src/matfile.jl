@@ -54,8 +54,7 @@ function release(f::MatFile)
 end
 
 function close(f::MatFile)
-    ptr = get_ptr(f)
-    ret = mat_close(ptr)
+    ret = mat_close(f)
     ret != 0 && throw(MEngineError("failed to close file (err = $ret)"))
     setfield!(f, :ptr, C_NULL)
     return nothing
