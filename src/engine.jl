@@ -23,7 +23,7 @@ mutable struct MSession
         if Sys.iswindows()
             assign_persistent_msession()
         end
-        ep = ccall(eng_open[], Ptr{Cvoid}, (Ptr{UInt8},), startcmd(flags))
+        ep = eng_open(startcmd(flags))
         if ep == C_NULL
             @warn("Confirm MATLAB is installed and discoverable.", maxlog=1)
             if Sys.iswindows()
@@ -35,15 +35,13 @@ mutable struct MSession
         end
         if Sys.iswindows()
             # hide the MATLAB command window on Windows and change to current directory
-            ccall(eng_set_visible[], Cint, (Ptr{Cvoid}, Cint), ep, 0)
-            ccall(eng_eval_string[], Cint, (Ptr{Cvoid}, Ptr{UInt8}),
-                ep, "try cd('$(escape_string(pwd()))'); end")
+            eng_set_visible(ep, 0)
+            eng_eval_string(ep, "try cd('$(escape_string(pwd()))'); end")
         end
         buf = Vector{UInt8}(undef, bufsize)
         if bufsize > 0
             bufptr = pointer(buf)
-            ccall(eng_output_buffer[], Cint, (Ptr{Cvoid}, Ptr{UInt8}, Cint),
-                ep, bufptr, bufsize)
+            eng_output_buffer(ep, bufptr, bufsize)
         else
             bufptr = convert(Ptr{UInt8}, C_NULL)
         end
@@ -63,7 +61,7 @@ end
 function release(session::MSession)
     ptr = session.ptr
     if ptr != C_NULL
-        ccall(eng_close[], Cint, (Ptr{Cvoid},), ptr)
+        eng_close(ptr)
     end
     session.ptr = C_NULL
     return nothing
@@ -71,7 +69,7 @@ end
 
 function close(session::MSession)
     # close a MATLAB Engine session
-    ret = ccall(eng_close[], Cint, (Ptr{Cvoid},), session)
+    ret = eng_close(session)
     ret != 0 && throw(MEngineError("failed to close MATLAB engine session (err = $ret)"))
     session.ptr = C_NULL
     return nothing
@@ -105,20 +103,20 @@ end
 
 if Sys.iswindows()
     function show_msession(m::MSession = get_default_msession())
-        ret = ccall(eng_set_visible[], Cint, (Ptr{Cvoid}, Cint), m, 1)
+        ret = eng_set_visible( m, 1)
         ret != 0 && throw(MEngineError("failed to show MATLAB engine session (err = $ret)"))
         return nothing
     end
 
     function hide_msession(m::MSession = get_default_msession())
-        ret = ccall(eng_set_visible[], Cint, (Ptr{Cvoid}, Cint), m, 0)
+        ret = eng_set_visible( m, 0)
         ret != 0 && throw(MEngineError("failed to hide MATLAB engine session (err = $ret)"))
         return nothing
     end
 
     function get_msession_visiblity(m::MSession = get_default_msession())
         vis = Ref{Cint}(true)
-        ccall(eng_get_visible[], Int, (Ptr{Cvoid}, Ptr{Cint}), m, vis)
+        eng_get_visible(m, vis)
         return vis[] == 1 ? true : false
     end
 end
@@ -131,7 +129,7 @@ end
 
 function eval_string(session::MSession, stmt::String)
     # evaluate a MATLAB statement in a given MATLAB session
-    ret = ccall(eng_eval_string[], Cint, (Ptr{Cvoid}, Ptr{UInt8}), session, stmt)
+    ret = eng_eval_string(session, stmt)
     ret != 0 && throw(MEngineError("invalid engine session (err = $ret)"))
 
     bufptr = session.bufptr
@@ -149,7 +147,7 @@ eval_string(stmt::String) = eval_string(get_default_msession(), stmt)
 
 function put_variable(session::MSession, name::Symbol, v::MxArray)
     # put a variable into a MATLAB engine session
-    ret = ccall(eng_put_variable[], Cint, (Ptr{Cvoid}, Ptr{UInt8}, Ptr{Cvoid}), session, string(name), v)
+    ret = eng_put_variable(session, string(name), v)
     ret != 0 && throw(MEngineError("failed to put variable $(name) into MATLAB session (err = $ret)"))
     return nothing
 end
@@ -160,7 +158,7 @@ put_variable(name::Symbol, v) = put_variable(get_default_msession(), name, v)
 
 
 function get_mvariable(session::MSession, name::Symbol)
-    pv = ccall(eng_get_variable[], Ptr{Cvoid}, (Ptr{Cvoid}, Ptr{UInt8}), session, string(name))
+    pv = eng_get_variable(session, string(name))
     pv == C_NULL && throw(MEngineError("failed to get variable $(name) from MATLAB session"))
     return MxArray(pv)
 end
