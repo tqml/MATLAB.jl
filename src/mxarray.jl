@@ -667,7 +667,8 @@ function jvalue(mx::MxArray)
     elseif is_struct(mx) && nelems(mx) == 1
         Dict(mx)
     else
-        throw(ArgumentError("Unsupported kind of variable."))
+        _convert_struct(mx)
+        #throw(ArgumentError("Unsupported kind of variable."))
     end
 end
 
@@ -684,3 +685,27 @@ jvalue(mx::MxArray, ::Type{SparseMatrixCSC}) = jsparse(mx)
 # legacy support (eventually drop, when all constructors added)
 jdict(mx::MxArray) = Dict(mx)
 jstring(mx::MxArray) = String(mx)
+
+
+
+function _convert_struct(mx::MxArray)
+    M = mxnfields(mx)
+    N = nelems(mx)
+    names = Vector{Symbol}(undef, M)
+    values = Matrix{MxArray}(undef, M, N)
+    for i = 1:M
+        names[i] = Symbol(get_fieldname(mx, i))
+    end
+
+    for i = 1:N
+        for j = 1:M
+            values[j, i] = get_field(mx, i, j)
+        end
+    end
+
+    names_tuple = Tuple(names)
+    return [
+        NamedTuple{names_tuple}(jvalue(values[j, i]) for j = 1:M)
+        for i = 1:N
+    ]
+end

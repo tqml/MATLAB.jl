@@ -151,3 +151,123 @@ function read_matfile(filename)
     close(f)
     return r
 end
+
+
+
+# %% --- Extra Propertynames ------------------------------------------ #
+
+
+function Base.getproperty(matfile::MatFile, name::Symbol)
+    if name == :filename || name == :ptr || name == :mode
+        return getfield(matfile, name)
+    else
+        return get_variable(matfile, name)
+    end
+end
+
+
+function Base.propertynames(matfile::MatFile, private::Bool = false)
+    names = [Symbol(name) for name in variable_names(matfile)]
+    if private
+        return [:filename, :ptr, names...]
+    end
+    return names
+end
+
+
+Base.keys(f::MatFile) = variable_names(f)
+Base.getindex(matfile::MatFile, name::AbstractString) = get_variable(matfile, name)
+Base.setindex!(matfile::MatFile, v, name::AbstractString) = put_variable(matfile, name, v)
+
+# %% --- Info ------------------------------------------ #
+
+"""
+MxArrayHeader provides information about a MxArray object without having
+to load the entire object from the MAT-file.
+"""
+struct MxArrayHeader
+    ptr::Ptr{Cvoid}
+end
+
+function unsafe_convert(::Type{Ptr{Cvoid}}, m::MxArrayHeader)
+    ptr = m.ptr
+    if ptr == C_NULL
+        throw(UndefRefError())
+    end
+    return ptr
+end
+
+classid(m::MxArrayHeader) = mxClassID(mx_get_classid(m))
+eltype(m::MxArrayHeader) = mxclassid_to_type(mxclassid(m))
+
+nrows(mx::MxArrayHeader)  = convert(Int, mx_get_m(mx))
+ncols(mx::MxArrayHeader)  = convert(Int, mx_get_n(mx))
+nelems(mx::MxArrayHeader) = convert(Int, mx_get_nelems(mx))
+ndims(mx::MxArrayHeader)  = convert(Int, mx_get_ndims(mx))
+
+is_numeric(mx::MxArrayHeader) = Bool(mx_is_numeric(mx))
+is_logical(mx::MxArrayHeader) = Bool(mx_is_logical(mx))
+is_complex(mx::MxArrayHeader) = Bool(mx_is_complex(mx))
+is_sparse(mx::MxArrayHeader)  = Bool(mx_is_sparse(mx))
+is_struct(mx::MxArrayHeader)  = Bool(mx_is_struct(mx))
+is_cell(mx::MxArrayHeader)    = Bool(mx_is_cell(mx))
+is_char(mx::MxArrayHeader)    = Bool(mx_is_char(mx))
+is_empty(mx::MxArrayHeader)   = Bool(mx_is_empty(mx))
+
+function size(mx::MxArrayHeader)
+    nd = ndims(mx)
+    pdims::Ptr{mwSize} = mx_get_dims(mx)
+    _dims = unsafe_wrap(Array, pdims, (nd,))
+    dims = Vector{Int}(undef, nd)
+    for i in 1:nd
+        dims[i] = Int(_dims[i])
+    end
+    return tuple(dims...)
+end
+
+function size(mx::MxArrayHeader, d::Integer)
+    d <= 0 && throw(ArgumentError("The dimension must be a positive integer."))
+    nd = ndims(mx)
+    if nd == 2
+        d == 1 ? nrows(mx) : d == 2 ? ncols(mx) : 1
+    else
+        pdims::Ptr{mwSize} = mx_get_dims(mx)
+        _dims = unsafe_wrap(Array, pdims, (nd,))
+        d <= nd ? Int(_dims[d]) : 1
+    end
+end
+
+
+
+function get_variable_info(matfile::MatFile, name::AbstractString)
+    p = mat_get_variable_info(matfile, name)
+    p == C_NULL && throw(MatFileException("failed to get variable info for $(name)"))
+    return MxArrayHeader(p)
+end
+
+function show_info(matfile::MatFile)
+    matfile_filename = basename(matfile.filename)
+    matfile_bytes = _byte_format(filesize(matfile.filename))
+    names = variable_names(matfile)
+    println("MAT-file: ", matfile_filename, " (", matfile_bytes, ")")
+    for name in names
+        info = get_variable_info(matfile, name)
+        println("  ", name, " (", classid(info), ", ", size(info), ")")
+    end
+end
+
+
+
+function _byte_format(bytes::Integer)
+    if bytes < 1024
+        return "$bytes B"
+    elseif bytes < 1024^2
+        return "$(round(bytes/1024, digits=2)) KiB"
+    elseif bytes < 1024^3
+        return "$(round(bytes/1024^2, digits=2)) MiB"
+    else
+        return "$(round(bytes/1024^3, digits=2)) GiB"
+    end
+end
+
+
