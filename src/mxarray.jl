@@ -279,8 +279,8 @@ end
 
 function mxarray(a::NTuple{N, T}) where {N, T <: MxRealNum}
     mx = mxarray(T, N)
-    pdat = ccall(mx_get_data[], Ptr{T}, (Ptr{Cvoid},), mx)
-    dat = unsafe_wrap(Array, pdat, N)
+    pdat = mx_get_data(mx)
+    dat = unsafe_wrap(Array, unsafe_convert(Ptr{T}, pdat), N)
     for i in 1:N
         dat[i] = a[i]
     end
