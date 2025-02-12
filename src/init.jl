@@ -158,75 +158,75 @@ function mx_get_jc(array)
 end
 
 function mx_is_double(array)
-    return ccall((:mxIsDouble, libmx), Cint, (Ptr{Cvoid},), array)
+    return ccall((:mxIsDouble, libmx), Bool, (Ptr{Cvoid},), array)
 end
 
 function mx_is_single(array)
-    return ccall((:mxIsSingle, libmx), Cint, (Ptr{Cvoid},), array)
+    return ccall((:mxIsSingle, libmx), Bool, (Ptr{Cvoid},), array)
 end
 
 function mx_is_int64(array)
-    return ccall((:mxIsInt64, libmx), Cint, (Ptr{Cvoid},), array)
+    return ccall((:mxIsInt64, libmx), Bool, (Ptr{Cvoid},), array)
 end
 
 function mx_is_uint64(array)
-    return ccall((:mxIsUint64, libmx), Cint, (Ptr{Cvoid},), array)
+    return ccall((:mxIsUint64, libmx), Bool, (Ptr{Cvoid},), array)
 end
 
 function mx_is_int32(array)
-    return ccall((:mxIsInt32, libmx), Cint, (Ptr{Cvoid},), array)
+    return ccall((:mxIsInt32, libmx), Bool, (Ptr{Cvoid},), array)
 end
 
 function mx_is_uint32(array)
-    return ccall((:mxIsUint32, libmx), Cint, (Ptr{Cvoid},), array)
+    return ccall((:mxIsUint32, libmx), Bool, (Ptr{Cvoid},), array)
 end
 
 function mx_is_int16(array)
-    return ccall((:mxIsInt16, libmx), Cint, (Ptr{Cvoid},), array)
+    return ccall((:mxIsInt16, libmx), Bool, (Ptr{Cvoid},), array)
 end
 
 function mx_is_uint16(array)
-    return ccall((:mxIsUint16, libmx), Cint, (Ptr{Cvoid},), array)
+    return ccall((:mxIsUint16, libmx), Bool, (Ptr{Cvoid},), array)
 end
 
 function mx_is_int8(array)
-    return ccall((:mxIsInt8, libmx), Cint, (Ptr{Cvoid},), array)
+    return ccall((:mxIsInt8, libmx), Bool, (Ptr{Cvoid},), array)
 end
 
 function mx_is_uint8(array)
-    return ccall((:mxIsUint8, libmx), Cint, (Ptr{Cvoid},), array)
+    return ccall((:mxIsUint8, libmx), Bool, (Ptr{Cvoid},), array)
 end
 
 function mx_is_char(array)
-    return ccall((:mxIsChar, libmx), Cint, (Ptr{Cvoid},), array)
+    return ccall((:mxIsChar, libmx), Bool, (Ptr{Cvoid},), array)
 end
 
 function mx_is_numeric(array)
-    return ccall((:mxIsNumeric, libmx), Cint, (Ptr{Cvoid},), array)
+    return ccall((:mxIsNumeric, libmx), Bool, (Ptr{Cvoid},), array)
 end
 
 function mx_is_logical(array)
-    return ccall((:mxIsLogical, libmx), Cint, (Ptr{Cvoid},), array)
+    return ccall((:mxIsLogical, libmx), Bool, (Ptr{Cvoid},), array)
 end
 
 function mx_is_complex(array)
-    return ccall((:mxIsComplex, libmx), Cint, (Ptr{Cvoid},), array)
+    return ccall((:mxIsComplex, libmx), Bool, (Ptr{Cvoid},), array)
 end
 
 function mx_is_sparse(array)
-    return ccall((:mxIsSparse, libmx), Cint, (Ptr{Cvoid},), array)
+    return ccall((:mxIsSparse, libmx), Bool, (Ptr{Cvoid},), array)
 end
 
 function mx_is_empty(array)
-    return ccall((:mxIsEmpty, libmx), Cint, (Ptr{Cvoid},), array)
+    return ccall((:mxIsEmpty, libmx), Bool, (Ptr{Cvoid},), array)
 end
 
 function mx_is_struct(array)
-    return ccall((:mxIsStruct, libmx), Cint, (Ptr{Cvoid},), array)
+    return ccall((:mxIsStruct, libmx), Bool, (Ptr{Cvoid},), array)
 end
 
 function mx_is_cell(array)
-    return ccall((:mxIsCell, libmx), Cint, (Ptr{Cvoid},), array)
+    return ccall((:mxIsCell, libmx), Bool, (Ptr{Cvoid},), array)
 end
 
 # functions to create & delete MATLAB arrays
