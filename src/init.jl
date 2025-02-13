@@ -1,16 +1,10 @@
 # libraries
 
-#const _libeng = Ref{Ptr{Cvoid}}()
-#const libmx  = Ref{Ptr{Cvoid}}()
-#const libmat = Ref{Ptr{Cvoid}}()
-
 if haskey(ENV, "MATLAB_LIB_PATH")
     _matlab_libpath = ENV["MATLAB_LIB_PATH"]
 else
     _matlab_libpath = matlab_libpath
 end
-
-#get(ENV, "MATLAB.jl")
 
 const libeng = joinpath(_matlab_libpath, "libeng")
 const libmat = joinpath(_matlab_libpath, "libmat")
@@ -19,10 +13,8 @@ const libmx  = joinpath(_matlab_libpath, "libmx")
 # MATLAB types
 const engine_handle = Ptr{Cvoid}
 const mxarray_handle = Ptr{Cvoid}
-const mwSize = UInt
-const mwIndex = Int
-#const mwSize = Cint
-#const mwIndex = Cint
+const mwSize = UInt # TODO change to Cint
+const mwIndex = Int # TODO change to Cint
 
 
 # matlab engine functions
