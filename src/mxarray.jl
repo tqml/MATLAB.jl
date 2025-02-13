@@ -668,7 +668,7 @@ function jvalue(mx::MxArray)
     else
         throw(ArgumentError("Unsupported kind of variable."))
     end
-
+end
 # deep conversion from MATLAB variable to Julia array
 
 jvalue(mx::MxArray, ::Type{Array})           = jarray(mx)
