@@ -129,34 +129,33 @@ ncols(mx::MxArray)   = convert(Int, mx_get_n(mx))
 nelems(mx::MxArray)  = convert(Int, mx_get_nelems(mx))
 ndims(mx::MxArray)   = convert(Int, mx_get_ndims(mx))
 
-eltype(mx::MxArray)  = mxclassid_to_type(classid(mx))
-elsize(mx::MxArray)  = convert(Int, mx_get_elemsize(mx))
-data_ptr(mx::MxArray) = convert(Ptr{eltype(mx)}, mx_get_data(mx))
-real_ptr(mx::MxArray) = convert(Ptr{eltype(mx)}, mx_get_pr(mx))
-imag_ptr(mx::MxArray) = convert(Ptr{eltype(mx)}, mx_get_pi(mx))
-
+eltype(mx::MxArray)    = mxclassid_to_type(classid(mx))
+elsize(mx::MxArray)    = convert(Int, mx_get_elemsize(mx))
+data_ptr(mx::MxArray)  = convert(Ptr{eltype(mx)}, mx_get_data(mx))
+real_ptr(mx::MxArray)  = convert(Ptr{eltype(mx)}, mx_get_pr(mx))
+imag_ptr(mx::MxArray)  = convert(Ptr{eltype(mx)}, mx_get_pi(mx))
 mxnfields(mx::MxArray) = convert(Int, mx_get_nfields(mx))
 
 # validation functions
-is_double(mx::MxArray) = Bool(mx_is_double(mx))
-is_single(mx::MxArray) = Bool(mx_is_single(mx))
-is_int64(mx::MxArray)  = Bool(mx_is_int64(mx))
-is_uint64(mx::MxArray) = Bool(mx_is_uint64(mx))
-is_int32(mx::MxArray)  = Bool(mx_is_int32(mx))
-is_uint32(mx::MxArray) = Bool(mx_is_uint32(mx))
-is_int16(mx::MxArray)  = Bool(mx_is_int16(mx))
-is_uint16(mx::MxArray) = Bool(mx_is_uint16(mx))
-is_int8(mx::MxArray)   = Bool(mx_is_int8(mx))
-is_uint8(mx::MxArray)  = Bool(mx_is_uint8(mx))
+is_double(mx::MxArray) = mx_is_double(mx)
+is_single(mx::MxArray) = mx_is_single(mx)
+is_int64(mx::MxArray)  = mx_is_int64(mx)
+is_uint64(mx::MxArray) = mx_is_uint64(mx)
+is_int32(mx::MxArray)  = mx_is_int32(mx)
+is_uint32(mx::MxArray) = mx_is_uint32(mx)
+is_int16(mx::MxArray)  = mx_is_int16(mx)
+is_uint16(mx::MxArray) = mx_is_uint16(mx)
+is_int8(mx::MxArray)   = mx_is_int8(mx)
+is_uint8(mx::MxArray)  = mx_is_uint8(mx)
 
-is_numeric(mx::MxArray) = Bool(mx_is_numeric(mx))
-is_logical(mx::MxArray) = Bool(mx_is_logical(mx))
-is_complex(mx::MxArray) = Bool(mx_is_complex(mx))
-is_sparse(mx::MxArray)  = Bool(mx_is_sparse(mx))
-is_struct(mx::MxArray)  = Bool(mx_is_struct(mx))
-is_cell(mx::MxArray)    = Bool(mx_is_cell(mx))
-is_char(mx::MxArray)    = Bool(mx_is_char(mx))
-is_empty(mx::MxArray)   = Bool(mx_is_empty(mx))
+is_numeric(mx::MxArray) = mx_is_numeric(mx)
+is_logical(mx::MxArray) = mx_is_logical(mx)
+is_complex(mx::MxArray) = mx_is_complex(mx)
+is_sparse(mx::MxArray)  = mx_is_sparse(mx)
+is_struct(mx::MxArray)  = mx_is_struct(mx)
+is_cell(mx::MxArray)    = mx_is_cell(mx)
+is_char(mx::MxArray)    = mx_is_char(mx)
+is_empty(mx::MxArray)   = mx_is_empty(mx)
 
 # size function
 
@@ -669,16 +668,15 @@ function jvalue(mx::MxArray)
     else
         throw(ArgumentError("Unsupported kind of variable."))
     end
-end
 
 # deep conversion from MATLAB variable to Julia array
 
-jvalue(mx::MxArray, ::Type{Array})  = jarray(mx)
-jvalue(mx::MxArray, ::Type{Vector}) = jvector(mx)
-jvalue(mx::MxArray, ::Type{Matrix}) = jmatrix(mx)
-jvalue(mx::MxArray, ::Type{Number}) = jscalar(mx)::Number
-jvalue(mx::MxArray, ::Type{String}) = String(mx)
-jvalue(mx::MxArray, ::Type{Dict}) = Dict(mx)
+jvalue(mx::MxArray, ::Type{Array})           = jarray(mx)
+jvalue(mx::MxArray, ::Type{Vector})          = jvector(mx)
+jvalue(mx::MxArray, ::Type{Matrix})          = jmatrix(mx)
+jvalue(mx::MxArray, ::Type{Number})          = jscalar(mx)::Number
+jvalue(mx::MxArray, ::Type{String})          = String(mx)
+jvalue(mx::MxArray, ::Type{Dict})            = Dict(mx)
 jvalue(mx::MxArray, ::Type{SparseMatrixCSC}) = jsparse(mx)
 
 # legacy support (eventually drop, when all constructors added)
