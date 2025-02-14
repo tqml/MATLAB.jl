@@ -20,13 +20,13 @@ mutable struct MatFile
 
     function MatFile(filename::AbstractString, mode::AbstractString)
         if !(mode in matfile_modes)
-            throw(MEngineError("invalid mode '$(mode)', must be one of $(join(matfile_modes, ", "))"))
+            throw(MatFileException("invalid mode '$(mode)', must be one of $(join(matfile_modes, ", "))"))
         end
         p = mat_open(filename, mode)
         if p == C_NULL
-            throw(MatFileException("failed to open file $(filename)"))
+            error_code = mat_get_errno(p)
+            throw(MatFileException("failed to open file $(filename) with error: $error_code"))
         end
-        mat_get_errno(p) != 0 && throw(MatFileException("failed to open file $(filename)"))
         self = new(p, filename, mode)
         finalizer(release, self)
         return self
@@ -35,8 +35,8 @@ end
 MatFile(filename) = MatFile(filename, "r")
 
 filename(f::MatFile) = getfield(f, :filename)
-get_ptr(f::MatFile) = getfield(f, :ptr)
-mode(f::MatFile) = getfield(f, :mode)
+get_ptr(f::MatFile)  = getfield(f, :ptr)
+mode(f::MatFile)     = getfield(f, :mode)
 
 function unsafe_convert(::Type{Ptr{Cvoid}}, f::MatFile)
     ptr = get_ptr(f)
@@ -55,7 +55,10 @@ end
 
 function close(f::MatFile)
     ret = mat_close(f)
-    ret != 0 && throw(MEngineError("failed to close file (err = $ret)"))
+    if ret != 0
+        error_code = mat_get_errno(f)
+        throw(MEngineError("failed to close file (err = $ret) ($error_code)"))
+    end
     setfield!(f, :ptr, C_NULL)
     return nothing
 end
@@ -68,7 +71,10 @@ Base.isreadonly(f::MatFile) = mode(f) == "r"
 
 function get_mvariable(f::MatFile, name::String)
     pm = mat_get_variable(f, name)
-    pm == C_NULL && error("Attempt to get variable '$(name)' failed.")
+    if pm == C_NULL
+        error_code = mat_get_errno(f)
+        throw(MatFileException("Attempt to get variable '$(name)' failed with error: $error_code"))
+    end
     return MxArray(pm)
 end
 
@@ -79,7 +85,10 @@ get_variable(f::MatFile, name::Symbol) = jvalue(get_mvariable(f, name))
 
 function put_variable(f::MatFile, name::String, v::MxArray)
     ret = mat_put_variable(f, name, v)
-    ret != 0 && error("Attempt to put variable $(name) failed.")
+    if ret != 0
+        error_code = mat_get_errno(f)
+        throw(MatFileException("Attempt to put variable $(name) failed with error: $error_code"))
+    end
     return nothing
 end
 
@@ -101,7 +110,8 @@ delete_variable(f::MatFile, name::Symbol) = delete_variable(f, string(name))
 function delete_variable(f::MatFile, name::AbstractString)
     ret = mat_delete_variable(f, name)
     if ret != 0
-        throw(MatFileException("failed to delete variable '$(name)'"))
+        error_code = mat_get_errno(f)
+        throw(MatFileException("failed to delete variable '$(name)' failed with error code: $error_code"))
     end
     return nothing
 end
@@ -120,7 +130,8 @@ function variable_names(f::MatFile)
     n = Int(_n[])
 
     if n < 0
-        throw(MatFileException("failed to get variable names"))
+        error_code = mat_get_errno(f)
+        throw(MatFileException("failed to get variable names with error: $error_code"))
     end
 
     if n == 0 || _a == C_NULL
@@ -137,7 +148,7 @@ end
 function read_matfile(f::MatFile)
     # return a dictionary of all variables
     names = variable_names(f)
-    r = Dict{String, MxArray}()
+    r = Dict{String,MxArray}()
     sizehint!(r, length(names))
     for nam in names
         r[nam] = get_mvariable(f, nam)
