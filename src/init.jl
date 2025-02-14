@@ -13,11 +13,34 @@ const libmx  = joinpath(_matlab_libpath, "libmx")
 # MATLAB types
 const engine_handle = Ptr{Cvoid}
 const mxarray_handle = Ptr{Cvoid}
-const mwSize = UInt # TODO change to Cint
-const mwIndex = Int # TODO change to Cint
+
+const mwSize = Csize_t # TODO change to Cint
+const mwIndex = Csize_t # TODO change to Cint
+
+
+const _mx_api_version = 730 # 730 for MATLAB R2017b
+
+
+
 
 
 # matlab engine functions
+
+"""
+engOpen starts a MATLAB® process for using MATLAB as a computational engine.
+
+Windows:
+- engOpen launches MATLAB without a desktop.
+- The function opens a COM channel to MATLAB. The MATLAB software you registered during installation starts. If you did not register during installation, then see Register MATLAB as a COM Server.
+
+On UNIX® systems, engOpen:
+1. Creates two pipes.
+2. Forks a new process. Sets up the pipes to pass stdin and stdout from MATLAB (parent) software to two file descriptors in the engine program (child).
+3. Executes a command to run MATLAB software (rsh for remote execution).
+
+https://de.mathworks.com/help/matlab/apiref/engopen.html
+"""
+function eng_open end
 
 eng_open(command)                            = ccall((:engOpen, libeng), engine_handle, (Cstring,), command)
 eng_close(handle)                            = ccall((:engClose, libeng), Cint, (engine_handle,), handle)
@@ -37,13 +60,13 @@ mx_free(array)            = ccall((:mxFree, libmx), Cvoid, (Ptr{Cvoid},), array)
 # functions to access mxarray
 
 mx_get_classid(array)  = ccall((:mxGetClassID, libmx), Cint, (Ptr{Cvoid},), array)
-mx_get_m(array)        = ccall((:mxGetM, libmx), Cint, (Ptr{Cvoid},), array)
-mx_get_n(array)        = ccall((:mxGetN, libmx), Cint, (Ptr{Cvoid},), array)
-mx_get_nelems(array)   = ccall((:mxGetNumberOfElements, libmx), Cint, (Ptr{Cvoid},), array)
-mx_get_ndims(array)    = ccall((:mxGetNumberOfDimensions_730, libmx), Cint, (Ptr{Cvoid},), array)
+mx_get_m(array)        = ccall((:mxGetM, libmx), Csize_t, (Ptr{Cvoid},), array)
+mx_get_n(array)        = ccall((:mxGetN, libmx), Csize_t, (Ptr{Cvoid},), array)
+mx_get_nelems(array)   = ccall((:mxGetNumberOfElements, libmx), Csize_t, (Ptr{Cvoid},), array)
+mx_get_ndims(array)    = ccall((:mxGetNumberOfDimensions_730, libmx), mwSize, (Ptr{Cvoid},), array)
 mx_get_elemsize(array) = ccall((:mxGetElementSize, libmx), Cint, (Ptr{Cvoid},), array)
 mx_get_data(array)     = ccall((:mxGetData, libmx), Ptr{Cvoid}, (Ptr{Cvoid},), array)
-mx_get_dims(array)     = ccall((:mxGetDimensions_730, libmx), Ptr{Cint}, (Ptr{Cvoid},), array)
+mx_get_dims(array)     = ccall((:mxGetDimensions_730, libmx), Ptr{mwSize}, (Ptr{Cvoid},), array)
 mx_get_nfields(array)  = ccall((:mxGetNumberOfFields, libmx), Cint, (Ptr{Cvoid},), array)
 mx_get_pr(array)       = ccall((:mxGetPr, libmx), Ptr{Cvoid}, (Ptr{Cvoid},), array)
 mx_get_pi(array)       = ccall((:mxGetPi, libmx), Ptr{Cvoid}, (Ptr{Cvoid},), array)
@@ -79,6 +102,7 @@ mx_create_logical_scalar(value)                           = ccall((:mxCreateLogi
 mx_create_sparse(m, n, nzmax, complexflag)                = ccall((:mxCreateSparse_730, libmx), Ptr{Cvoid}, (Cint, Cint, Cint, Cint), m, n, nzmax, complexflag)
 mx_create_sparse_logical(m, n, nzmax)                     = ccall((:mxCreateSparseLogicalMatrix_730, libmx), Ptr{Cvoid}, (Cint, Cint, Cint), m, n, nzmax)
 mx_create_string(str)                                     = ccall((:mxCreateString, libmx), Ptr{Cvoid}, (Cstring,), str)
+mx_create_char_matrix_from_strings(n, strings)            = ccall((:mxCreateCharMatrixFromStrings, libmx), Ptr{Cvoid}, (Cint, Ptr{Cstring}), n, strings)
 mx_create_char_array(ndim, dims)                          = ccall((:mxCreateCharArray_730, libmx), Ptr{Cvoid}, (Cint, Ptr{Cint}), ndim, dims)
 mx_create_cell_array(ndim, dims)                          = ccall((:mxCreateCellArray_730, libmx), Ptr{Cvoid}, (Cint, Ptr{Cint}), ndim, dims)
 mx_create_struct_matrix(m, n, nfields, fieldnames)        = ccall((:mxCreateStructMatrix_730, libmx), Ptr{Cvoid}, (Cint, Cint, Cint, Ptr{Cstring}), m, n, nfields, fieldnames)
@@ -95,8 +119,102 @@ mx_get_string(array, buf, buflen)            = ccall((:mxGetString_730, libmx), 
 
 # load I/O mat functions
 
-const matError       = Cint
+
 const matfile_handle = Ptr{Cvoid}
+
+
+@enum matError::Cint begin
+    mat_NO_ERROR = 0
+    mat_UNKNOWN_ERROR
+    mat_GENERIC_READ_ERROR
+    mat_GENERIC_WRITE_ERROR
+
+    mat_INDEX_TOO_BIG
+    #= Read-time error indicating that (typically) an index or dimension
+     * written on a 64-bit platform exceeds 2^32, and we're trying to
+     * read it on a 32-bit platform. =#
+
+    mat_FILE_FORMAT_VIOLATION
+    #= Read-time error indicating that some data or structure internal to
+     * MAT file is bad - damaged or written improperly. =#
+
+    mat_FAIL_TO_IDENTIFY
+    #= Read-time error indicating that the contents of the file do not
+     * match any known type of MAT file. =#
+
+    mat_BAD_ARGUMENT
+    #= Unsuitable data was passed to the MAT API =#
+
+    mat_OUTPUT_BAD_DATA
+    #= Write-time error indicating that something in the mxArray makes it
+     * not suitable to write. =#
+
+    mat_FULL_OBJECT_OUTPUT_CONVERT
+    #= Write-time error indicating that conversion of an object (opaque or
+     * OOPS) to a saveable form, has failed.  In this case the object is the
+     * value of a variable, and the variable will not be saved at all. =#
+
+    mat_PART_OBJECT_OUTPUT_CONVERT
+    #= Write-time error indicating that conversion of an object (opaque or
+     * OOPS) to a saveable form, has failed.  In this case the object is
+     * the value in a field or element of a variable, and the variable
+     * will be saved with an empty in that field or element. =#
+
+    mat_FULL_OBJECT_INPUT_CONVERT
+    #= Read-time error indicating that conversion of saveable data
+     * to an object (opaque or OOPS), has failed.  In this case the object
+     * is the value of a variable, and the variable has not been loaded. =#
+
+    mat_PART_OBJECT_INPUT_CONVERT
+    #= Read-time error indicating that conversion of saveable data
+     * to an object (opaque or OOPS), has failed.  In this case the object is
+     * the value in a field or element of a variable, and the variable
+     * will be loaded with an empty in that field or element. =#
+
+    mat_OPERATION_NOT_SUPPORTED
+    #= Error indicating that the particular MAT API operation is
+     * not supported on this kind of MAT file, or this kind of stream. =#
+
+    mat_OUT_OF_MEMORY
+    #= Operations internal to the MAT library encountered out-of-memory. =#
+
+    mat_BAD_VARIABLE_NAME
+    #= The name for a MATLAB variable contains illegal characters,
+     * or exceeds the length allowed for that file format. =#
+
+    mat_OPERATION_PROHIBITED_IN_WRITE_MODE
+    #= The operation requested is only available when the file is open
+       in Read or Update mode.  For example: matGetDir. =#
+
+    mat_OPERATION_PROHIBITED_IN_READ_MODE
+    #= The operation requested is only available when the file is open
+       in Write or Update mode.  For example: matPutVariable. =#
+
+    mat_WRITE_VARIABLE_DOES_NOT_EXIST
+    #= A write operation that requires a variable already exist did not find the
+     * variable in the file.  For example: matDeleteVariable. =#
+
+    mat_READ_VARIABLE_DOES_NOT_EXIST
+    #= A read operation that requires a variable already exist did not find the
+     * variable in the file.  For example: matGetVariable. =#
+
+    mat_FILESYSTEM_COULD_NOT_OPEN
+    #= The MAT module could not open the requested file. =#
+
+    mat_FILESYSTEM_COULD_NOT_OPEN_TEMPORARY
+    #= The MAT module could not open a temporary file. =#
+
+    mat_FILESYSTEM_COULD_NOT_REOPEN
+    #= The MAT module could not REopen the requested file. =#
+
+    mat_BAD_OPEN_MODE
+    #= The mode argument to matOpen did not match any expected value =#
+
+    mat_FILESYSTEM_ERROR_ON_CLOSE
+    #= The MAT module got an error while fclose-ing the file.  Might indicate a full
+     * filesystem.  =#
+end
+
 
 mat_open(filename, mode) = ccall((:matOpen, libmat), Ptr{Cvoid}, (Cstring, Cstring), filename, mode)
 

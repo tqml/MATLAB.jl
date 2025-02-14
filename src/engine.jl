@@ -14,6 +14,18 @@ startcmd(flags::AbstractVector{<:AbstractString}) = isempty(flags) ? default_mat
 # 64 K buffer should be sufficient to store the output text in most cases
 const default_output_buffer_size = 64 * 1024
 
+
+const windows_regserver_warning = """
+Failed to start MATLAB engine. If you have/had multiple versions installed, this can happen if you tried to start 
+a different version of MATLAB in Julia compared to what MATLAB server is registered in Windows. 
+
+To register a MATLAB version manually as a server, start MATLAB as a user with administrator privilege. Then type:
+
+Ensure `matlab -regserver` has been run in a Command Prompt as Administrator.
+
+https://de.mathworks.com/help/matlab/matlab_external/registering-matlab-software-as-a-com-server.html
+"""
+
 mutable struct MSession
     ptr::Ptr{Cvoid}
     buffer::Vector{UInt8}
@@ -25,11 +37,11 @@ mutable struct MSession
         end
         ep = eng_open(startcmd(flags))
         if ep == C_NULL
-            @warn("Confirm MATLAB is installed and discoverable.", maxlog=1)
+            @warn("Confirm MATLAB is installed and discoverable.", matlab_libpath, matlab_root, matlab_cmd, maxlog = 1)
             if Sys.iswindows()
-                @warn("Ensure `matlab -regserver` has been run in a Command Prompt as Administrator.", maxlog=1)
+                @warn(windows_regserver_warning, maxlog = 1)
             elseif Sys.islinux()
-                @warn("Ensure `csh` is installed; this may require running `sudo apt-get install csh`.", maxlog=1)
+                @warn("Ensure `csh` is installed; this may require running `sudo apt-get install csh`.", maxlog = 1)
             end
             throw(MEngineError("failed to open MATLAB engine session"))
         end
