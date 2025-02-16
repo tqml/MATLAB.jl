@@ -67,6 +67,21 @@ end
 
 
 
+function __init__()
+
+    @info "MATLAB Debug Info" matlab_cmd matlab_libpath
+
+    # load libraries
+    # workaround for https://github.com/JuliaInterop/MATLAB.jl/issues/200
+    if Sys.iswindows()
+        ENV["PATH"] = string(matlab_libpath, ";", ENV["PATH"])
+    elseif Sys.islinux()
+        ENV["PATH"] = string(matlab_libpath, ":", ENV["PATH"])
+    end
+
+end
+
+
 ###########################################################
 #
 #   deprecations
